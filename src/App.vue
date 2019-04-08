@@ -1,28 +1,41 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <GameBoard :data="data"></GameBoard>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import GameBoard from './components/GameBoard'
 
 export default {
   name: 'app',
+  data(){
+    return {
+      data: [ // 初始地图
+				[0,0,1,1,1,1,1,0],
+				[1,1,1,0,0,1,1,1],
+				[1,0,0,0,0,0,4,1],
+				[1,0,2,1,1,1,0,1],
+				[1,0,2,0,0,0,0,1],
+				[1,5,0,0,0,0,0,1],
+				[1,0,0,4,1,1,1,1],
+				[1,1,1,1,1,0,0,0]
+			]
+    }
+  },
   components: {
-    HelloWorld
+    GameBoard
   }
 }
 </script>
 
 <style>
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 </style>
