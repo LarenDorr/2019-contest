@@ -17,8 +17,6 @@ export default {
 	},
 	data(){
 		return {
-			canMove: ITEMS[this.type]['canMove'],
-			canThrough: ITEMS[this.type]['canMove']
 		}
 	},
 	mounted(){

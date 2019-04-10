@@ -11,7 +11,7 @@
 				</Item>
 			</tr>
 		</table>
-		<Item 
+		<!-- <Item 
 			class="cell dynamic"
 			v-for="item in boxs"
 			:type="item.type"
@@ -24,11 +24,21 @@
 			:type="person.type"
 			:style="getCSSFromPosi(person.position)"
 		>
+		</Item> -->
+		<Item
+			v-for="item in boxs.concat(person)"
+			:key="item.id"
+			:type="item.type"
+			class="cell dynamic"
+			:style="getCSSFromPosi(item.position)"
+		>
 		</Item>
 	</div>
 </template>
 <script>
 import ITEMS from '../constant/Item.js'
+import Matrix from '../utils/matrix.js'
+
 import Item from './Item'
 // TODO: 错误控制
 export default {
@@ -51,36 +61,52 @@ export default {
 		this.initData()
 	},
 	computed: {
-		person(){
-			let position 
-			this.dynamicItems.forEach((raw, rawIndex) => {
-				raw.forEach((item, colIndex) => {
-					if (item.type === 5) {
-						position = [rawIndex, colIndex]
-					}
-				})
+		person(){ // 人物
+			let personPosi
+			Matrix.forEach(this.dynamicItems, (item, position) => {
+				if (item.type === 5) {
+					personPosi = position
+				}
 			})
 			return {
-				position,
+				position: personPosi,
 				type: 5
 			}
 		},
-		boxs(){
+		boxs(){ // 箱子
 			let all = []
-			let position 
-			this.dynamicItems.forEach((raw, rawIndex) => {
-				raw.forEach((item, colIndex) => {
-					if (item.type === 2) {
-						position = [rawIndex, colIndex]
-						all.push({
-							position,
-							type: 2,
-							id: item.id
-						})
-					}
-				})
+			let position
+			Matrix.forEach(this.dynamicItems, (item, position) => {
+				if (item.type === 2) {
+					let {type, id, canMove} = item
+					all.push({
+						position,
+						type,
+						id,
+						canMove
+					})
+				}
 			})
 			return all
+		},
+		places(){ // 放置点
+			let all = []
+			Matrix.forEach(this.staticItems, (item, position) => {
+				if (item === 4) {
+					all.push(position)
+				}
+			})
+			return all
+		},
+		isSuccess(){ // 判断是否在成功, 即箱子都在放置点
+			let boxPosi = this.boxs.map(box => box.position.toString())
+			return this.places.every(place => {
+				place = place.toString()
+				return boxPosi.includes(place)
+			})
+		},
+		isFailed(){ // 判断是否失败, 即箱子在都角落且不都在放置点
+			return this.boxs.every(box => !box.canMove)
 		}
 	},
 	watch: {
@@ -89,8 +115,16 @@ export default {
 		/**
 		 * 判断游戏失败|成功|继续
 		 */
-		isGameContinue(){
+		willGameContinue(){
 			// TODO: 判断游戏是否进行
+			if (this.isSuccess) {
+				console.log('成功!')
+				return
+			}
+			if (this.isFailed) {
+				console.log('失败!')
+				return
+			}
 		},
 		/**
 		 * 尝试移动一个物品
@@ -98,17 +132,20 @@ export default {
 		go(position, direction){
 			let itemPosi = position
 			let willGoPosi = this.calcPosi(itemPosi, direction) // 物品将要移动的位置
-			let willGoItem = this.dynamicItems[willGoPosi[0]][willGoPosi[1]].type // 物品信息
+			let willGoItem = this.dynamicItems[willGoPosi[0]][willGoPosi[1]] // 物品信息
 			if (this.canMove(willGoPosi)) { // 移动到空气或放置点
 				this.moveItem(itemPosi, willGoPosi)
+				this.checkBoxs()
 				return true
-			} else if (willGoItem === 2) {
+			} else if (willGoItem.type === 2) { // 移动的到的位置为箱子
+				if (!willGoItem.canMove) {
+					return false
+				}
 				let res = this.go(willGoPosi, direction)
 				if (res) {
 					this.moveItem(itemPosi, willGoPosi)
+					this.checkBoxs()
 					return true
-				} else {
-					return false
 				}
 			}
 			return false
@@ -118,7 +155,7 @@ export default {
 		 */
 		goPerson(direction){
 			this.go(this.person.position, direction)
-			this.isGameContinue()
+			this.willGameContinue()
 		},
 		/**
 		 * 移动物品
@@ -154,21 +191,23 @@ export default {
 			}
 		},
 		/**
-		 * 判断指定位置的Item是否可移动
+		 * 判断是否可以移动到position处
 		 */
 		canMove(position){
 			let [x, y] = position
-			let itemType = this.dynamicItems[x][y].type
-			if (itemType === 2) {
+			let item = this.dynamicItems[x][y] // 先检查动态物品
+			let itemType = item.type || item
+			if (itemType === 2) { // 该处有箱子时
 				return false
 			}
-			itemType = this.staticItems[x][y]
-			if (ITEMS[itemType].canMove || ITEMS[itemType].canThrough) {
+			itemType = this.staticItems[x][y] // 再检查静态物品
+			if (ITEMS[itemType].canThrough) {
 				return true
 			}
+			return false
 		},
 		/**
-		 * 记录本次操作造成的移动
+		 * 记录本次操作造成的移动 // TODO: canmove 改变
 		 */
 		record(from, to){
 			this.history.push(this.lastPositions)
@@ -178,12 +217,78 @@ export default {
 		 * 撤销上次操作
 		 */
 		undo(){
-			if (this.history.length) {
+			if (this.history.length) { // 当历史记录中有操作时
 				let last = this.history.pop().reverse()
 				last.forEach(posi => {
 					this.moveItem(posi.to, posi.from, false)
 				})
+				this.checkBoxs() // 重算箱子的状态
 			}
+		},
+		/**
+		 * 检测箱子是否还能移动
+		 */
+		checkBoxs(){
+			let hasBlock = [] // 该位置上下左右是否阻塞
+			let res
+			this.boxs.forEach(box => {
+				let around = Matrix.getAround(this.staticItems, box.position) // 检查周围的静态物品
+				around.forEach(item => {
+					if (!ITEMS[item.value].canThrough) {
+						hasBlock.push(1)
+					} else {
+						hasBlock.push(0)
+					}
+				})
+				around = Matrix.getAround(this.dynamicItems, box.position) // 检查周围不可移动箱子
+				around.forEach((item, index) => {
+					item = item.value
+					if (item && !item.canMove) {
+						hasBlock[index] = 1
+					}
+				})
+				let count = hasBlock.reduce((acc, cur) => acc + cur) // 阻塞面数
+				if (count >= 3) { // 三\四面阻塞则冻结
+					this.freezeItem(box.position)
+				} else if (count === 2) { // 两面阻塞, 不可连续
+					let noBlock = hasBlock[0] === 1 && hasBlock[2] === 1 // 上下不阻塞
+					noBlock = noBlock || (hasBlock[1] === 1 && hasBlock[3] === 1) // 左右不阻塞
+					if (!noBlock) { // 剩余情况为连续两面, 则必阻塞
+						this.freezeItem(box.position)
+					} else {
+						this.unFreezeItem(box.position)
+					}
+				} else {
+					this.unFreezeItem(box.position)
+				}
+				
+				hasBlock = []
+			})
+			
+		},
+		/**
+		 * 冻结箱子
+		 */
+		freezeItem(position){
+			let [x, y] = position
+			this.$set(this.dynamicItems[x], y , {
+				...this.dynamicItems[x][y],
+				canMove: false
+			})
+		},
+		/**
+		 * 解冻箱子, 回退状态时使用
+		 */
+		unFreezeItem(position){
+			let [x, y] = position
+			this.$set(this.dynamicItems[x], y , {
+				...this.dynamicItems[x][y],
+				canMove: true
+			})
+		},
+		refresh(){
+			this.initData()
+			this.history = []
 		},
 		/**
 		 * 根据位置计算CSS值
@@ -216,6 +321,9 @@ export default {
 				if (key === 'z') { // 按键为z, 撤销上次操作
 					this.undo()
 				}
+				if (key === 'r') { // 重开
+					this.refresh()
+				}
 			})
 		},
 		/**
@@ -231,13 +339,14 @@ export default {
 					}
 				})
 			)
-			let id = 0 // ! 
+			let id = 0 
 			this.dynamicItems = this.data.map(raw => 
 				raw.map(col => {
 					if (ITEMS[col].canMove) {
 						return {
 							type: col,
-							id: id++
+							id: id++,
+							canMove: true
 						}
 					} else {
 						return 0
