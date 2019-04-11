@@ -1,41 +1,42 @@
 <template>
   <div id="app">
-    <GameBoard :data="data"></GameBoard>
+    <Title></Title>
+    <Window></Window>
+    <Control></Control>
   </div>
 </template>
 
 <script>
-import GameBoard from './components/GameBoard'
+import Title from './components/Title'
+import Window from './components/Window'
+import Control from './components/Control'
 
 export default {
   name: 'app',
-  data(){
-    return {
-      data: [ // 初始地图
-				[0,0,1,1,1,1,1,0],
-				[1,1,1,0,0,1,1,1],
-				[1,0,0,0,0,0,4,1],
-				[1,0,2,1,1,1,0,1],
-				[1,0,2,0,0,0,0,1],
-				[1,5,0,0,0,0,0,1],
-				[1,0,0,4,1,1,1,1],
-				[1,1,1,1,1,0,0,0]
-			]
-    }
-  },
   components: {
-    GameBoard
+    Title,
+    Window,
+    Control
   }
 }
 </script>
 
 <style>
+html,body{
+  height: 100%;
+}
+*{
+  margin: 0;
+}
 #app {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   width: 100%;
+  height: 100%;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
 }
 </style>

@@ -11,20 +11,6 @@
 				</Item>
 			</tr>
 		</table>
-		<!-- <Item 
-			class="cell dynamic"
-			v-for="item in boxs"
-			:type="item.type"
-			:key="item.id"
-			:style="getCSSFromPosi(item.position)"
-		>
-		</Item>
-		<Item
-			class="cell dynamic"
-			:type="person.type"
-			:style="getCSSFromPosi(person.position)"
-		>
-		</Item> -->
 		<Item
 			v-for="item in boxs.concat(person)"
 			:key="item.id"
@@ -38,8 +24,11 @@
 <script>
 import ITEMS from '../constant/Item.js'
 import Matrix from '../utils/matrix.js'
+import Bus from '../utils/Bus'
 
 import Item from './Item'
+import OPERATION from '../constant/Operation'
+
 // TODO: 错误控制
 export default {
 	name: 'GameBoard',
@@ -57,8 +46,9 @@ export default {
 		}
 	},
 	mounted(){
-		this.registerKey()
+		this.registerControl()
 		this.initData()
+		this.checkStatus()
 	},
 	computed: {
 		person(){ // 人物
@@ -109,14 +99,13 @@ export default {
 			return this.boxs.every(box => !box.canMove)
 		}
 	},
-	watch: {
-	},
 	methods: {
 		/**
 		 * 判断游戏失败|成功|继续
 		 */
 		willGameContinue(){
 			// TODO: 判断游戏是否进行
+			this.checkStatus()
 			if (this.isSuccess) {
 				console.log('成功!')
 				return
@@ -207,7 +196,7 @@ export default {
 			return false
 		},
 		/**
-		 * 记录本次操作造成的移动 // TODO: canmove 改变
+		 * 记录本次操作造成的移动
 		 */
 		record(from, to){
 			this.history.push(this.lastPositions)
@@ -223,7 +212,25 @@ export default {
 					this.moveItem(posi.to, posi.from, false)
 				})
 				this.checkBoxs() // 重算箱子的状态
+				this.checkStatus()
 			}
+		},
+		checkStatus(){
+			let boxsPosi = this.boxs.map(box => box.position)
+			let count = 0
+			this.places.forEach(place => {
+				boxsPosi.forEach(box => {
+					if (place.toString() === box.toString()) {
+						count++
+					}
+				})
+			})
+			this.$nextTick(() => {
+				this.$emit('status', {
+					steps: this.history.length,
+					done: [count, boxsPosi.length]
+				})
+			})
 		},
 		/**
 		 * 检测箱子是否还能移动
@@ -289,6 +296,7 @@ export default {
 		refresh(){
 			this.initData()
 			this.history = []
+			this.checkStatus()
 		},
 		/**
 		 * 根据位置计算CSS值
@@ -302,27 +310,25 @@ export default {
 			}
 		},
 		/**
-		 * 注册键盘事件
+		 * 注册控制事件
 		 */
-		registerKey(){
-			let register = document.body.addEventListener
+		registerControl(){
+			let directionMap = ['UP', 'DOWN', 'LEFT', 'RIGHT']
+			let that = this
 			let map = {
-				'w': 'up',
-				'a': 'left',
-				's': 'down',
-				'd': 'right'
+				[OPERATION.return](){
+					that.undo()
+				},
+				[OPERATION.reload](){
+					that.refresh()
+				}
 			}
-			register('keyup', event => {
-				let key = event.key
-				if (Object.keys(map).includes(key)) { // 按键为 w a s d 时, 移动人物
-					this.goPerson(map[key])
+			Bus.$on('control', operation => {
+				if (directionMap.includes(operation)) {
+					that.goPerson(operation.toLocaleLowerCase())
 					this.record()
-				}
-				if (key === 'z') { // 按键为z, 撤销上次操作
-					this.undo()
-				}
-				if (key === 'r') { // 重开
-					this.refresh()
+				} else {
+					map[operation]()
 				}
 			})
 		},
