@@ -26,7 +26,9 @@
 				</tr>
 				<tr>
 					<td></td>
-					<td @click="handleClick('question')">❓</td>
+					<td @click="handleClick('question')">
+						<!-- ❔ -->
+					</td>
 					<td></td>
 				</tr>
 				<tr>
@@ -37,9 +39,11 @@
 			</table>
 		</div>
 		<div class="pc-control" v-else>
-			<p>W A S D 进行移动</p>
-			<p>Z 撤销上一步操作</p>
-			<p>R 重新载入游戏</p>
+			<p>W A S D 进行移动/选择</p>
+			<p>Space 确认选择</p>
+			<p>Esc 返回菜单</p>
+			<p>Z 撤销操作</p>
+			<p>R 重新载入</p>
 		</div>
 	</div>
 </template>
@@ -51,7 +55,11 @@ export default {
 	name: 'Control',
 	data(){
     return {
-      isMobile: /Mobile/i.test(navigator.userAgent)
+      isMobile: /Mobile/i.test(navigator.userAgent),
+			isEmoji: true,
+			control: {
+				
+			}
     }
   },
 	mounted(){
@@ -80,7 +88,12 @@ export default {
 				if (key === 'r') { // 重开
 					Bus.$emit('control', OPERATION.reload)
 				}
-				// TODO: esc space
+				if (key === ' ') { // 确认
+					Bus.$emit('control', OPERATION.confirm)
+				}
+				if (key === 'Escape') { // 取消
+					Bus.$emit('control', OPERATION.cancel)
+				}
 			})
 		}
 	}

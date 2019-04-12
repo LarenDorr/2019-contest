@@ -33,8 +33,11 @@ import OPERATION from '../constant/Operation'
 export default {
 	name: 'GameBoard',
 	props: {
-		data: {
+		mapData: {
 			type: Array
+		},
+		isGaming: {
+			type: Boolean
 		}
 	},
 	data(){
@@ -49,6 +52,13 @@ export default {
 		this.registerControl()
 		this.initData()
 		this.checkStatus()
+	},
+	watch: {
+		mapData(){
+			this.initData()
+			this.checkStatus()
+			this.history = []
+		}
 	},
 	computed: {
 		person(){ // 人物
@@ -104,14 +114,13 @@ export default {
 		 * 判断游戏失败|成功|继续
 		 */
 		willGameContinue(){
-			// TODO: 判断游戏是否进行
 			this.checkStatus()
 			if (this.isSuccess) {
-				console.log('成功!')
+				this.$emit('result', true)
 				return
 			}
 			if (this.isFailed) {
-				console.log('失败!')
+				this.$emit('result', false)
 				return
 			}
 		},
@@ -143,8 +152,11 @@ export default {
 		 * 尝试移动人物
 		 */
 		goPerson(direction){
-			this.go(this.person.position, direction)
-			this.willGameContinue()
+			let hasGo = this.go(this.person.position, direction)
+			if (hasGo) {
+				this.record()
+				this.willGameContinue()
+			}
 		},
 		/**
 		 * 移动物品
@@ -304,8 +316,8 @@ export default {
 		getCSSFromPosi(position){ // 根据坐标计算CSS left|right值
 			if (position) {
 				return {
-					top: `${position[0] * 44}px`,
-					left: `${position[1] * 44}px`
+					top: `${position[0] * 40}px`,
+					left: `${position[1] * 40}px`
 				}
 			}
 		},
@@ -321,12 +333,16 @@ export default {
 				},
 				[OPERATION.reload](){
 					that.refresh()
+				},
+				[OPERATION.cancel](){
 				}
 			}
 			Bus.$on('control', operation => {
+				if (!this.isGaming) {
+					return
+				}
 				if (directionMap.includes(operation)) {
 					that.goPerson(operation.toLocaleLowerCase())
-					this.record()
 				} else {
 					map[operation]()
 				}
@@ -336,7 +352,7 @@ export default {
 		 * 分离原始数据, 分为静态Item(墙|放置点), 动态Item(人物|箱子)
 		 */
 		initData(){
-			this.staticItems = this.data.map(raw => 
+			this.staticItems = this.mapData.map(raw => 
 				raw.map(col => {
 					if (!ITEMS[col].canMove) {
 						return col
@@ -346,7 +362,7 @@ export default {
 				})
 			)
 			let id = 0 
-			this.dynamicItems = this.data.map(raw => 
+			this.dynamicItems = this.mapData.map(raw => 
 				raw.map(col => {
 					if (ITEMS[col].canMove) {
 						return {
@@ -369,19 +385,21 @@ export default {
 <style>
 .game-board{
 	position: relative;
+	border-radius: 20px;
 }
 .board-table{
 	border-spacing: 0;
 	border-collapse:collapse;
 }
 .cell{
-	width: 44px;
-	height: 44px;
-	font-size: 2em;
+	width: 40px;
+	height: 40px;
+	font-size: 1.5em;
 	padding: 0;
 	transition: all 0.2s ease;
 }
 .dynamic{
 	position: absolute;
+	margin-top: 4px;
 }
 </style>
