@@ -1,5 +1,6 @@
 <template>
 	<div class="control">
+		<!-- 移动端控制, 使用emoji键盘 -->
 		<div v-if="isMobile" class="mobile-control">
 			<table class="keys">
 				<tr>
@@ -26,9 +27,7 @@
 				</tr>
 				<tr>
 					<td></td>
-					<td @click="handleClick('question')">
-						<!-- ❔ -->
-					</td>
+					<td></td>
 					<td></td>
 				</tr>
 				<tr>
@@ -38,6 +37,7 @@
 				</tr>
 			</table>
 		</div>
+		<!-- PC端控制, 使用键盘 -->
 		<div class="pc-control" v-else>
 			<p>W A S D 进行移动/选择</p>
 			<p>Space 确认选择</p>
@@ -52,23 +52,25 @@ import Bus from '../utils/Bus'
 import OPERATION from '../constant/Operation'
 
 export default {
-	name: 'Control',
+	name: 'GameControl',
 	data(){
     return {
-      isMobile: /Mobile/i.test(navigator.userAgent),
-			isEmoji: true,
-			control: {
-				
-			}
+      isMobile: /Mobile/i.test(navigator.userAgent)
     }
   },
 	mounted(){
 		this.registerKey()
 	},
 	methods: {
+		/**
+		 * 处理 emoji 按键
+		 */
 		handleClick(key){
 			Bus.$emit('control', OPERATION[key])
 		},
+		/**
+		 * 注册键盘事件
+		 */
 		registerKey(){
 			let register = document.body.addEventListener
 			let map = {
@@ -82,7 +84,7 @@ export default {
 				if (Object.keys(map).includes(key)) { // 按键为 w a s d 时, 移动人物
 					Bus.$emit('control', map[key])
 				}
-				if (key === 'z') { // 按键为z, 撤销上次操作
+				if (key === 'z') { // 撤销上次操作
 					Bus.$emit('control', OPERATION.return)
 				}
 				if (key === 'r') { // 重开

@@ -1,12 +1,14 @@
 <template>
 	<div class="status">
+		<!-- 游戏步数 -->
 		<span class="statu">👟: {{status.steps}}</span>
+		<!-- 游戏完成度 -->
 		<span class="statu">🏁: {{status.done[0]}}/{{status.done[1]}}</span>
 	</div>
 </template>
 <script>
 export default {
-	name: 'Status',
+	name: 'GameStatus',
 	props: {
 		status: {
 			type: Object,
@@ -17,7 +19,6 @@ export default {
 </script>
 <style>
 .status{
-	margin: 20px 0 0 0;
 	display: flex;
 }
 .statu{

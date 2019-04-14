@@ -1,5 +1,4 @@
 // 矩阵的通用方法
-
 export default {
 	/**
 	 * 遍历矩阵, 通过回调来获得元素的值与坐标
@@ -13,6 +12,17 @@ export default {
 				cb(value, [rawIndex, colIndex])
 			})
 		})
+	},
+	/**
+	 * 遍历矩阵, 通过回调来过滤值与坐标
+	 *
+	 * @param {[[]]} matrix
+	 * @param {Function} cb
+	 */
+	map(matrix, cb){
+		return matrix.map((raw, rawIndex) => 
+			raw.map((value, colIndex) => cb(value, [rawIndex, colIndex]))
+		)
 	},
 	/**
 	 * 获取该元素周围的值和位置, 顺序为顺时针方向

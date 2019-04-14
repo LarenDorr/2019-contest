@@ -1,3 +1,4 @@
+// 控制常量
 export default {
 	up: 'UP',
 	down: 'DOWN',

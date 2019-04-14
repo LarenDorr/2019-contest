@@ -1,8 +1,9 @@
 <template>
+	<!-- 通用选择组件, 循环选择选项 -->
 	<div class="select">
 		<p class="select-title">{{title}}</p>
 		<div class="select-options">
-			<p v-for="text in texts">{{text}}</p>
+			<p v-for="(text, index) in texts" :key="index">{{text}}</p>
 		</div>
 	</div>
 </template>
@@ -31,10 +32,10 @@ export default {
 		}
 	},
 	computed: {
-		values(){
+		values(){ // 选项的值
 			return this.options.map(option => option.value)
 		},
-		texts(){
+		texts(){ // 选项的显示文本
 			return this.options.map((option, index) => {
 				if (index === this.nowValue) {
 					return '👉' + option.text
@@ -45,24 +46,24 @@ export default {
 		}
 	},
 	watch: {
-		operation(operate){
+		operation(operate){ // 根据操作改变选项值
 			operate = operate.value
 			let map = {
-				[OPERATION.up]: () => {
+				[OPERATION.up]: () => { // 向上
 					if (this.nowValue !== 0) {
 						this.nowValue --
 					} else {
 						this.nowValue = this.options.length - 1
 					}
 				},
-				[OPERATION.down]: () => {
+				[OPERATION.down]: () => { // 向下
 					if (this.nowValue !== this.options.length - 1) {
 						this.nowValue ++
 					} else {
 						this.nowValue = 0
 					}
 				},
-				[OPERATION.confirm]: () => {
+				[OPERATION.confirm]: () => { // 确认
 					this.$emit('select', this.nowValue)
 					this.nowValue = 0
 				}

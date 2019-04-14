@@ -10,15 +10,16 @@
 		>
 		</GameBoard>
 		<!-- 游戏状态显示 -->
-		<Status
+		<GameStatus
 			:status="status"
-		></Status>
+		></GameStatus>
 		<!-- 游戏难度|关卡选择 -->
-		<Selects
+		<LevelSelects
 			v-if="!isGaming"
 			@selects="handleSelects"
 		>
-		</Selects>
+		</LevelSelects>
+		<!-- 成功|失败消息提示 -->
 		<Message
 			v-if="message.type"
 			:type="message.type"
@@ -30,33 +31,32 @@
 <script>
 import Bus from '../utils/Bus'
 import OPERATION from '../constant/Operation'
-import Selects from './Selects'
+import LevelSelects from './LevelSelects'
 import GameBoard from './GameBoard'
-import Status from './Status'
+import GameStatus from './GameStatus'
 import Message from './common/Message'
 import GameMaps from '../constant/GameMaps'
 
-// TODO: 初始map
 export default {
 	name: 'Window',
 	data(){
     return {
       map: [ // 初始地图
-      	[0, 0, 0, 1, 1, 1, 1, 0],
-      	[1, 1, 1, 0, 0, 0, 1, 1],
-      	[1, 4, 0, 0, 0, 0, 4, 1],
-      	[1, 0, 0, 2, 1, 0, 4, 1],
-      	[1, 1, 0, 2, 1, 0, 1, 1],
-      	[0, 1, 0, 2, 0, 0, 1, 1],
-      	[0, 1, 0, 0, 1, 0, 5, 1],
-      	[0, 1, 1, 1, 1, 1, 1, 1]
+      	[1, 0, 0, 0, 0, 0, 0, 1],
+      	[0, 1, 0, 0, 0, 0, 1, 0],
+      	[0, 0, 1, 0, 0, 1, 0, 0],
+      	[0, 0, 0, 1, 1, 0, 0, 0],
+      	[0, 0, 0, 1, 1, 0, 0, 0],
+      	[0, 0, 1, 0, 0, 1, 0, 0],
+      	[0, 1, 0, 0, 0, 0, 1, 0],
+      	[1, 0, 0, 0, 0, 0, 0, 1]
       ],
-			status: {
-				steps: 0,
-				done: [0, 0]
+			status: { // 游戏状态
+				steps: 0, // 步数
+				done: [0, 0] // 完成度 已完成/总目标
 			},
 			isGaming: false,
-			message: {
+			message: { // 消息提示
 				type: '',
 				content: ''
 			}
@@ -70,15 +70,24 @@ export default {
 		})
 	},
 	methods:{
+		/**
+		 * 状态显示
+		 */
 		handleStatus(status){
 			this.status = status
 		},
+		/**
+		 * 处理关卡选择
+		 */
 		handleSelects(selects){
 			let {diffcult, level} = selects
 			let map = GameMaps[diffcult][level]
 			this.map = map
 			this.isGaming = true
 		},
+		/**
+		 * 处理游戏结果(成功|失败)
+		 */
 		handleResult(result){
 			if (result) {
 				this.message.type = 'success'
@@ -91,18 +100,24 @@ export default {
 				this.clearMessage()
 			}, 2000)
 		},
+		/**
+		 * 清除消息
+		 */
 		clearMessage(){
 			this.message.type = ''
 			this.message.content = ''
 		},
+		/**
+		 * 重新选择关卡
+		 */
 		reSelect(){
 			this.isGaming = false
 		}
 	},
 	components: {
     GameBoard,
-		Status,
-		Selects,
+		GameStatus,
+		LevelSelects,
 		Message
   }
 }

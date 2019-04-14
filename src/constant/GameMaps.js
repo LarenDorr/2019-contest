@@ -1,3 +1,4 @@
+// 预设的游戏地图
 export default {
 	'easy': [
 		[

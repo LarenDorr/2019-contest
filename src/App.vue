@@ -1,22 +1,25 @@
 <template>
   <div id="app">
+    <!-- 游戏名称 -->
     <Title></Title>
+    <!-- 游戏主窗口: 显示及状态 -->
     <Window></Window>
-    <Control></Control>
+    <!-- 游戏控制 -->
+    <GameControl></GameControl>
   </div>
 </template>
 
 <script>
 import Title from './components/Title'
 import Window from './components/Window'
-import Control from './components/Control'
+import GameControl from './components/GameControl'
 
 export default {
   name: 'app',
   components: {
     Title,
     Window,
-    Control
+    GameControl
   }
 }
 </script>

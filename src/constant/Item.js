@@ -1,3 +1,4 @@
+// Item类别常量
 export default {
 	0: {
 		value: '',

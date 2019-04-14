@@ -7,16 +7,14 @@
 			@select="handleSelect"
 		>
 		</Select>
-		
 	</div>
 </template>
 <script>
 import Bus from '../utils/Bus'
-import OPERATION from '../constant/Operation'
 import Select from './common/Select'
 
 export default {
-	name: 'Selects',
+	name: 'LevelSelects',
 	data(){
 		return {
 			selects:[
@@ -69,7 +67,7 @@ export default {
 		}
 	},
 	computed: {
-		currentSelectValue(){
+		currentSelectValue(){ // 当先选择的值
 			return this.selects[this.currentSelect].value
 		}
 	},
@@ -77,6 +75,9 @@ export default {
 		this.registerKey()
 	},
 	methods: {
+		/**
+		 * 注册控制事件
+		 */
 		registerKey(){
 			Bus.$on('control', (operation) => {
 				this.operation = {
@@ -84,6 +85,9 @@ export default {
 				}
 			})
 		},
+		/**
+		 * 处理选择的值
+		 */
 		handleSelect(value){
 			let currentSelectName = this.selects[this.currentSelect].name
 			let currentSelectValue = this.selects[this.currentSelect].value.options[value].value

@@ -1,18 +1,24 @@
 <template>
 	<div class="game-board">
+		<!-- 静态Item -->
 		<table class="board-table">
-			<tr v-for="(raw, rawIndex) in staticItems">
+			<tr
+				v-for="(raw, rawIndex) in staticItems"
+				:key="rawIndex"
+			>
 				<Item 
 					v-for="(col, colIndex) in raw"
 					class="cell"
+					:key="rawIndex+'-'+colIndex"
 					:type="col"
 					:position="rawIndex+'-'+colIndex"
 				>
 				</Item>
 			</tr>
 		</table>
+		<!-- 动态Item -->
 		<Item
-			v-for="item in boxs.concat(person)"
+			v-for="item in boxsAndPerson"
 			:key="item.id"
 			:type="item.type"
 			class="cell dynamic"
@@ -22,12 +28,11 @@
 	</div>
 </template>
 <script>
-import ITEMS from '../constant/Item.js'
-import Matrix from '../utils/matrix.js'
-import Bus from '../utils/Bus'
-
-import Item from './Item'
 import OPERATION from '../constant/Operation'
+import ITEMS from '../constant/Item.js'
+import Matrix from '../utils/Matrix.js'
+import Bus from '../utils/Bus'
+import Item from './Item'
 
 // TODO: 错误控制
 export default {
@@ -44,7 +49,7 @@ export default {
 		return {
 			staticItems: [[]], // 不可移动的Item, 墙壁|放置点
 			dynamicItems: [[]], // 可移动的Item, 人物|箱子
-			history: [], // 步骤记录,
+			history: [], // 步骤记录
 			lastPositions: [] // 此次操作移动的记录
 		}
 	},
@@ -54,28 +59,31 @@ export default {
 		this.checkStatus()
 	},
 	watch: {
-		mapData(){
+		mapData(){ // 地图数据改变时开始新游戏
 			this.initData()
 			this.checkStatus()
 			this.history = []
 		}
 	},
 	computed: {
-		person(){ // 人物
+		person(){ // 人物数据
 			let personPosi
 			Matrix.forEach(this.dynamicItems, (item, position) => {
 				if (item.type === 5) {
 					personPosi = position
 				}
 			})
-			return {
-				position: personPosi,
-				type: 5
+			if (personPosi) {
+				return {
+					position: personPosi,
+					type: 5
+				}
+			} else {
+				return {}
 			}
 		},
-		boxs(){ // 箱子
+		boxs(){ // 箱子数据
 			let all = []
-			let position
 			Matrix.forEach(this.dynamicItems, (item, position) => {
 				if (item.type === 2) {
 					let {type, id, canMove} = item
@@ -88,6 +96,12 @@ export default {
 				}
 			})
 			return all
+		},
+		boxsAndPerson(){
+			if (Object.keys(this.person).length) {
+				return this.boxs.concat(this.person)
+			}
+			return this.boxs
 		},
 		places(){ // 放置点
 			let all = []
@@ -210,7 +224,7 @@ export default {
 		/**
 		 * 记录本次操作造成的移动
 		 */
-		record(from, to){
+		record(){
 			this.history.push(this.lastPositions)
 			this.lastPositions = []
 		},
@@ -227,6 +241,9 @@ export default {
 				this.checkStatus()
 			}
 		},
+		/**
+		 * 检查游戏状态并emit
+		 */
 		checkStatus(){
 			let boxsPosi = this.boxs.map(box => box.position)
 			let count = 0
@@ -249,7 +266,6 @@ export default {
 		 */
 		checkBoxs(){
 			let hasBlock = [] // 该位置上下左右是否阻塞
-			let res
 			this.boxs.forEach(box => {
 				let around = Matrix.getAround(this.staticItems, box.position) // 检查周围的静态物品
 				around.forEach(item => {
@@ -269,10 +285,10 @@ export default {
 				let count = hasBlock.reduce((acc, cur) => acc + cur) // 阻塞面数
 				if (count >= 3) { // 三\四面阻塞则冻结
 					this.freezeItem(box.position)
-				} else if (count === 2) { // 两面阻塞, 不可连续
+				} else if (count === 2) { // 两面阻塞
 					let noBlock = hasBlock[0] === 1 && hasBlock[2] === 1 // 上下不阻塞
 					noBlock = noBlock || (hasBlock[1] === 1 && hasBlock[3] === 1) // 左右不阻塞
-					if (!noBlock) { // 剩余情况为连续两面, 则必阻塞
+					if (!noBlock) { // 连续两面, 则必阻塞
 						this.freezeItem(box.position)
 					} else {
 						this.unFreezeItem(box.position)
@@ -296,7 +312,7 @@ export default {
 			})
 		},
 		/**
-		 * 解冻箱子, 回退状态时使用
+		 * 解冻箱子(回退状态时使用)
 		 */
 		unFreezeItem(position){
 			let [x, y] = position
@@ -305,6 +321,9 @@ export default {
 				canMove: true
 			})
 		},
+		/**
+		 * 重新开始
+		 */
 		refresh(){
 			this.initData()
 			this.history = []
@@ -313,11 +332,11 @@ export default {
 		/**
 		 * 根据位置计算CSS值
 		 */
-		getCSSFromPosi(position){ // 根据坐标计算CSS left|right值
+		getCSSFromPosi(position){
 			if (position) {
 				return {
-					top: `${position[0] * 40}px`,
-					left: `${position[1] * 40}px`
+					top: `${position[0] * 40 + 10}px`,
+					left: `${position[1] * 40 + 10}px`
 				}
 			}
 		},
@@ -352,29 +371,23 @@ export default {
 		 * 分离原始数据, 分为静态Item(墙|放置点), 动态Item(人物|箱子)
 		 */
 		initData(){
-			this.staticItems = this.mapData.map(raw => 
-				raw.map(col => {
-					if (!ITEMS[col].canMove) {
-						return col
-					} else {
-						return 0
+			this.staticItems = Matrix.map(this.mapData, value => {
+				if (!ITEMS[value].canMove) {
+					return value
+				}
+				return 0
+			})
+			let id = 0
+			this.dynamicItems = Matrix.map(this.mapData, value => {
+				if (ITEMS[value].canMove) {
+					return {
+						type: value,
+						id: id++,
+						canMove: true
 					}
-				})
-			)
-			let id = 0 
-			this.dynamicItems = this.mapData.map(raw => 
-				raw.map(col => {
-					if (ITEMS[col].canMove) {
-						return {
-							type: col,
-							id: id++,
-							canMove: true
-						}
-					} else {
-						return 0
-					}
-				})
-			)
+				}
+				return 0
+			})
 		}
 	},
 	components: {
@@ -386,6 +399,7 @@ export default {
 .game-board{
 	position: relative;
 	border-radius: 20px;
+	padding: 10px;
 }
 .board-table{
 	border-spacing: 0;

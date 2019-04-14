@@ -1,4 +1,5 @@
 <template>
+	<!-- 基础Item组件,即基础物品: 箱子|墙壁|人物... -->
 	<td>{{type | emojiIt}}</td>
 </template>
 <script>
@@ -14,15 +15,6 @@ export default {
 		position: {
 			type: String
 		}
-	},
-	data(){
-		return {
-		}
-	},
-	mounted(){
-		
-	},
-	methods: {
 	},
 	filters: {
 		emojiIt(type){ // 数字映射为emoji

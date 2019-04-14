@@ -1,5 +1,6 @@
 <template>
-	<div class="message" :class="border">
+	<!-- 通用消息组件, 通知信息 -->
+	<div class="message" :class="borderStyle">
 		<p>{{content}}</p>
 	</div>
 </template>
@@ -17,7 +18,7 @@ export default {
 		}
 	},
 	computed: {
-		border(){
+		borderStyle(){
 			return {
 				'success': this.type === 'success',
 				'failed': this.type === 'failed'
