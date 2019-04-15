@@ -7,12 +7,12 @@
 
 <h2 align="center">特色</h2>
 
-<center>
-<p>关卡、难度选择</p>
-<p>失败、胜利判断（待改进）</p>
-<p>支持移动端</p>
-<p>支持撤销、重新加载</p>
-</center>
+
+- 关卡、难度选择
+- 失败、胜利判断（待改进）
+- 支持移动端
+- 支持撤销、重新加载
+
 
 <h2 align="center">游戏截图</h2>
 
@@ -28,9 +28,3 @@
 	<img src="./docs/win.png" alt="游戏成功" width="225" height="390">
 	<img src="./docs/lose.png" alt="游戏失败" width="225" height="390">
 </p>
-
-<style>
-img{
-	margin: 0 50px;
-}
-</style>
