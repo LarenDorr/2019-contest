@@ -1,26 +1,36 @@
-# 2019年前端星计划
+<h1 align="center">👉Push Emoji👈</h1>
 
-这是星计划校招选拔的综合挑战题
+<p align="center">
+一个使用Vue制作的 Emoji 版推箱子游戏。
+<a href="https://larendorr.github.io/2019-contest/">Demo</a>
+</p>
 
-## 题目描述
+<h2 align="center">特色</h2>
 
-用 JavaScript 实现一个推箱子游戏
+<center>
+<p>关卡、难度选择</p>
+<p>失败、胜利判断（待改进）</p>
+<p>支持移动端</p>
+<p>支持撤销、重新加载</p>
+</center>
 
-![](https://p3.ssl.qhimg.com/t01a01fe1b96d05edcd.png)
+<h2 align="center">游戏截图</h2>
 
-## 要求
+<p align="center">
+	<img src="./docs/diffcult.png" alt="选择难度" width="225" height="390">
+	<img src="./docs/level.png" alt="选择关卡" width="225" height="390">
+</p>
+<p align="center">
+	<img src="./docs/game-pc.png" alt="游戏界面" width="225" height="390">
+	<img src="./docs/game-mobile.png" alt="移动端" width="215" height="390">
+</p>
+<p align="center">
+	<img src="./docs/win.png" alt="游戏成功" width="225" height="390">
+	<img src="./docs/lose.png" alt="游戏失败" width="225" height="390">
+</p>
 
-- 能够选择关卡和难度
-- 能够正确判断失败和胜利
-
-## 加分项
-
-- 支持移动设备
-- 比较优秀的UI和交互
-- 代码实现优雅，注释完整
-
-## 如何提交
-
-参加 2019 年前端星计划的学生 fork 本项目，编辑.75camp文件，添加姓名和学号后4位，用于验证身份。
-
-完成作品后将项目URL提交到奇舞学院测试试卷的相关题目的答案中。
+<style>
+img{
+	margin: 0 50px;
+}
+</style>
